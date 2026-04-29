@@ -1,109 +1,133 @@
 import json
+import sqlite3
 from datetime import datetime, timezone
-from functools import lru_cache
+from pathlib import Path
 
-import pandas as pd
-from datasets import Dataset, load_dataset
-from huggingface_hub import HfApi
+DB_PATH = Path(__file__).parent / "data" / "profiles.db"
+DB_PATH.parent.mkdir(exist_ok=True)
 
-import config
+_DDL = """
+CREATE TABLE IF NOT EXISTS profiles (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    name                  TEXT UNIQUE NOT NULL,
+    org                   TEXT DEFAULT '',
+    timestamp             TEXT DEFAULT '',
+    areas_json            TEXT DEFAULT '[]',
+    interests_json        TEXT DEFAULT '{}',
+    expertise_json        TEXT DEFAULT '{}',
+    collab_goals_json     TEXT DEFAULT '[]',
+    description           TEXT DEFAULT '',
+    deep_tech_contribution TEXT DEFAULT '',
+    deep_tech_examples    TEXT DEFAULT ''
+)
+"""
 
-_SCHEMA_COLS = [
-    "name", "org", "timestamp",
-    "areas_json", "interests_json", "expertise_json",
-    "collab_goals_json", "description",
+_MIGRATE_ADD = [
+    ("deep_tech_contribution", "TEXT DEFAULT ''"),
+    ("deep_tech_examples",     "TEXT DEFAULT ''"),
 ]
 
-_EMPTY_ROW: dict[str, list] = {col: [] for col in _SCHEMA_COLS}
+_MIGRATE_DROP = [
+    "custom_areas_json",
+    "research_areas_json",
+    "deep_tech_interests_json",
+]
 
 
-@lru_cache(maxsize=1)
-def _hf_username() -> str:
-    if config.HF_USERNAME:
-        return config.HF_USERNAME
-    api = HfApi(token=config.HF_TOKEN)
-    return api.whoami()["name"]
+def _conn() -> sqlite3.Connection:
+    c = sqlite3.connect(DB_PATH, check_same_thread=False)
+    c.row_factory = sqlite3.Row
+    c.execute("PRAGMA journal_mode=WAL")
+    return c
 
 
-def _repo_id() -> str:
-    return f"{_hf_username()}/{config.HF_DATASET_NAME}"
+def _init():
+    with _conn() as c:
+        c.execute(_DDL)
+        for col, defn in _MIGRATE_ADD:
+            try:
+                c.execute(f"ALTER TABLE profiles ADD COLUMN {col} {defn}")
+            except Exception:
+                pass
+        for col in _MIGRATE_DROP:
+            try:
+                c.execute(f"ALTER TABLE profiles DROP COLUMN {col}")
+            except Exception:
+                pass
 
 
-def _repo_exists() -> bool:
-    api = HfApi(token=config.HF_TOKEN)
-    try:
-        api.dataset_info(_repo_id())
-        return True
-    except Exception:
-        return False
-
-
-def get_or_create_dataset() -> Dataset:
-    if _repo_exists():
-        return load_dataset(_repo_id(), split="train", token=config.HF_TOKEN)
-    ds = Dataset.from_dict(_EMPTY_ROW)
-    ds.push_to_hub(_repo_id(), token=config.HF_TOKEN)
-    return ds
+_init()
 
 
 def save_profile(profile: dict) -> None:
-    """Upsert profile — one entry per user, update if already exists."""
     name = profile.get("name", "")
-    row = {
-        "name":              name,
-        "org":               profile.get("org", ""),
-        "timestamp":         datetime.now(timezone.utc).isoformat(),
-        "areas_json":        json.dumps(profile.get("areas", [])),
-        "interests_json":    json.dumps(profile.get("interests", {})),
-        "expertise_json":    json.dumps(profile.get("expertise", {})),
-        "collab_goals_json": json.dumps(profile.get("collab_goals", [])),
-        "description":       profile.get("description", ""),
-    }
-    try:
-        existing = load_dataset(_repo_id(), split="train", token=config.HF_TOKEN)
-        df = existing.to_pandas()
-        df = df[df["name"] != name].reset_index(drop=True)
-        new_row_df = pd.DataFrame([row])
-        df = pd.concat([df, new_row_df], ignore_index=True)
-        df = df.reindex(columns=_SCHEMA_COLS, fill_value="")
-        updated = Dataset.from_pandas(df, preserve_index=False)
-    except Exception:
-        updated = Dataset.from_dict({k: [v] for k, v in row.items()})
-    updated.push_to_hub(_repo_id(), token=config.HF_TOKEN)
+    with _conn() as c:
+        c.execute(
+            """
+            INSERT INTO profiles
+                (name, org, timestamp,
+                 areas_json, interests_json, expertise_json, collab_goals_json,
+                 description, deep_tech_contribution, deep_tech_examples)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(name) DO UPDATE SET
+                org=excluded.org,
+                timestamp=excluded.timestamp,
+                areas_json=excluded.areas_json,
+                interests_json=excluded.interests_json,
+                expertise_json=excluded.expertise_json,
+                collab_goals_json=excluded.collab_goals_json,
+                description=excluded.description,
+                deep_tech_contribution=excluded.deep_tech_contribution,
+                deep_tech_examples=excluded.deep_tech_examples
+            """,
+            (
+                name,
+                profile.get("org", ""),
+                datetime.now(timezone.utc).isoformat(),
+                json.dumps(profile.get("areas", [])),
+                json.dumps(profile.get("interests", {})),
+                json.dumps(profile.get("expertise", {})),
+                json.dumps(profile.get("collab_goals", [])),
+                profile.get("description", ""),
+                profile.get("deep_tech_contribution", ""),
+                profile.get("deep_tech_examples", ""),
+            ),
+        )
 
 
 def get_profile_by_name(name: str) -> dict | None:
-    """Return parsed profile dict for a user, or None if not found."""
-    try:
-        df = load_all_profiles()
-        rows = df[df["name"] == name]
-        if rows.empty:
-            return None
-        row = rows.iloc[0]
-        return {
-            "name":         row["name"],
-            "org":          row.get("org", ""),
-            "areas":        json.loads(row["areas_json"])        if isinstance(row["areas_json"],        str) else [],
-            "interests":    json.loads(row["interests_json"])    if isinstance(row["interests_json"],    str) else {},
-            "expertise":    json.loads(row["expertise_json"])    if isinstance(row["expertise_json"],    str) else {},
-            "collab_goals": json.loads(row["collab_goals_json"]) if isinstance(row["collab_goals_json"], str) else [],
-            "description":  row.get("description", ""),
-        }
-    except Exception:
-        return None
+    with _conn() as c:
+        row = c.execute("SELECT * FROM profiles WHERE name=?", (name,)).fetchone()
+    return _parse(dict(row)) if row else None
 
 
-def load_all_profiles() -> pd.DataFrame:
-    """Pull latest dataset from HF Hub and return as DataFrame."""
-    try:
-        ds = load_dataset(_repo_id(), split="train", token=config.HF_TOKEN)
-        return ds.to_pandas()
-    except Exception:
-        return pd.DataFrame(columns=_SCHEMA_COLS)
+def load_all_profiles() -> list[dict]:
+    with _conn() as c:
+        rows = c.execute("SELECT * FROM profiles ORDER BY timestamp DESC").fetchall()
+    return [_parse(dict(r)) for r in rows]
 
 
 def clear_all_profiles() -> None:
-    """Replace the HF dataset with an empty schema (wipes all profiles)."""
-    _hf_username.cache_clear()
-    ds = Dataset.from_dict(_EMPTY_ROW)
-    ds.push_to_hub(_repo_id(), token=config.HF_TOKEN)
+    with _conn() as c:
+        c.execute("DELETE FROM profiles")
+
+
+def _parse(row: dict) -> dict:
+    def _j(v, d):
+        try:
+            return json.loads(v) if v else d
+        except Exception:
+            return d
+
+    return {
+        "name":                  row["name"],
+        "org":                   row.get("org", ""),
+        "timestamp":             row.get("timestamp", ""),
+        "areas":                 _j(row.get("areas_json"),         []),
+        "interests":             _j(row.get("interests_json"),     {}),
+        "expertise":             _j(row.get("expertise_json"),     {}),
+        "collab_goals":          _j(row.get("collab_goals_json"),  []),
+        "description":           row.get("description", ""),
+        "deep_tech_contribution": row.get("deep_tech_contribution", ""),
+        "deep_tech_examples":    row.get("deep_tech_examples", ""),
+    }

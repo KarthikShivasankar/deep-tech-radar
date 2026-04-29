@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    container_name: deep-techradar
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # lets the container reach host Ollama
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: deep-techradar-ngrok
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command: http app:8000 --log stdout
+    ports:
+      - "4040:4040"   # ngrok dashboard — see live URL at http://localhost:4040
+    depends_on:
+      - app

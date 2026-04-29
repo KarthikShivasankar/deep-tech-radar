@@ -17,11 +17,10 @@ CURRENT_YEAR: int = 2025
 RECENT_YEARS: int = 3
 PAPERS_CACHE_YEARS: int = 5
 
-# ── OpenAI ────────────────────────────────────────────────────────────────────
+# ── Ollama ────────────────────────────────────────────────────────────────────
 
-OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-OPENAI_TIMEOUT: int = 120
+OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
+OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen3:latest")
 
 # ── UI ────────────────────────────────────────────────────────────────────────
 

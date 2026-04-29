@@ -12,151 +12,230 @@ import storage
 
 ADMIN_PASSWORD = "sintef2024"
 
+# Force light mode at the meta level
 _FONTS_HEAD = (
     '<meta name="color-scheme" content="light">'
+    '<meta name="theme-color" content="#F0F4FF">'
     '<link rel="preconnect" href="https://fonts.googleapis.com">'
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
     '<link href="https://fonts.googleapis.com/css2?'
-    'family=Barlow+Condensed:wght@400;600;700&'
-    'family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,400&'
+    'family=Inter:wght@300;400;500;600;700&'
+    'family=Barlow+Condensed:wght@500;600;700&'
     'family=JetBrains+Mono:wght@400;500;600'
     '&display=swap" rel="stylesheet">'
 )
 
-# ── CSS ────────────────────────────────────────────────────────────────────────
-# Design tokens: paper-white cards, near-black ink, strong blue accent.
-# Every label/input/text is dark enough to read without squinting.
+# ── Design tokens ──────────────────────────────────────────────────────────────
 CUSTOM_CSS = """
-:root {
-    color-scheme: light;
-    --bg:       #E8EDF5;
-    --card:     #FFFFFF;
-    --card2:    #F8FAFD;
-    --b0:       #E2E8F0;
-    --b1:       #94A3B8;
-    --b2:       #475569;
-    --blue:     #1D4ED8;
-    --blue-dk:  #1E40AF;
-    --blue-lo:  rgba(29,78,216,0.07);
-    --blue-mid: rgba(29,78,216,0.18);
-    --ink:      #0F172A;
-    --ink2:     #1E293B;
-    --ink3:     #334155;
-    --red:      #9F1239;
-    --red-lo:   rgba(159,18,57,0.07);
-    --red-mid:  rgba(159,18,57,0.32);
-    --green:    #14532D;
-    --bc:       'Barlow Condensed', sans-serif;
-    --b:        'Barlow', sans-serif;
-    --m:        'JetBrains Mono', monospace;
-    --r:        8px;
+/* ── FORCE LIGHT MODE ── */
+:root,
+:root.dark,
+html[data-theme="dark"],
+html.dark {
+    color-scheme: light !important;
+
+    --bg:        #EEF2FB;
+    --surface:   #FFFFFF;
+    --surface2:  #F7F9FE;
+    --border:    #D1D9EE;
+    --border-md: #A8B7D8;
+
+    --blue:      #2563EB;
+    --blue-dk:   #1D4ED8;
+    --blue-xdk:  #1E40AF;
+    --blue-lo:   rgba(37,99,235,0.06);
+    --blue-mid:  rgba(37,99,235,0.16);
+    --blue-glow: rgba(37,99,235,0.28);
+
+    --teal:      #0D9488;
+    --teal-lo:   rgba(13,148,136,0.06);
+
+    --ink:       #0F172A;
+    --ink2:      #1E293B;
+    --ink3:      #334155;
+    --muted:     #64748B;
+
+    --red:       #BE123C;
+    --red-lo:    rgba(190,18,60,0.06);
+    --red-mid:   rgba(190,18,60,0.22);
+
+    --green:     #15803D;
+    --green-lo:  rgba(21,128,61,0.08);
+
+    --r:         10px;
+    --r-sm:      6px;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,0.07), 0 1px 2px rgba(15,23,42,0.04);
+    --shadow:    0 4px 12px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.05);
+    --shadow-md: 0 8px 24px rgba(15,23,42,0.10), 0 2px 6px rgba(15,23,42,0.06);
+
+    --f-sans:  'Inter', sans-serif;
+    --f-cond:  'Barlow Condensed', sans-serif;
+    --f-mono:  'JetBrains Mono', monospace;
 }
 
-/* ── Page background — NO pseudo-element that can block clicks ── */
+@media (prefers-color-scheme: dark) {
+    :root { color-scheme: light !important; }
+}
+
+/* ── Base reset ── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 html {
     background: var(--bg) !important;
-    /* dot-grid directly on html, safe */
-    background-image: radial-gradient(circle, rgba(29,78,216,0.07) 1px, transparent 1px) !important;
-    background-size: 26px 26px !important;
+    background-image:
+        radial-gradient(circle, rgba(37,99,235,0.055) 1px, transparent 1px) !important;
+    background-size: 24px 24px !important;
     background-attachment: fixed !important;
 }
 
-body {
+body, .dark body, html.dark body {
     background: transparent !important;
-}
-
-.gradio-container {
-    background: transparent !important;
-    font-family: var(--b) !important;
     color: var(--ink) !important;
-    max-width: 1200px;
 }
 
-/* ── ALL text defaults to near-black ── */
-.gradio-container * {
+.gradio-container,
+.dark .gradio-container,
+html.dark .gradio-container {
+    background: transparent !important;
+    font-family: var(--f-sans) !important;
+    color: var(--ink) !important;
+    max-width: 1240px !important;
+}
+
+.gradio-container *,
+.dark .gradio-container * {
     color: var(--ink);
 }
 
-/* ── Labels: bold, dark, readable ── */
+/* ── Hero header ── */
+.app-hero {
+    background: linear-gradient(135deg, #1E40AF 0%, #2563EB 45%, #0EA5E9 100%) !important;
+    border-radius: var(--r) !important;
+    padding: 2rem 2.5rem !important;
+    margin-bottom: 0.5rem !important;
+    box-shadow: var(--shadow-md) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.app-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.app-hero h1 {
+    font-family: var(--f-cond) !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 0 0.35rem 0 !important;
+    line-height: 1.1 !important;
+}
+
+.app-hero p {
+    font-family: var(--f-sans) !important;
+    font-size: 0.92rem !important;
+    color: rgba(255,255,255,0.82) !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+    max-width: 640px !important;
+}
+
+/* ── Blocks and panels ── */
+.block,
+.form,
+.panel,
+.dark .block,
+.dark .form,
+.dark .panel {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--r) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: box-shadow 0.15s !important;
+}
+
+.block:hover {
+    box-shadow: var(--shadow) !important;
+}
+
+/* ── Labels ── */
 label span,
 label > span,
 .block label span,
-.block label > span,
 .label-wrap span,
-.label-wrap > span {
-    font-family: var(--m) !important;
-    font-size: 0.68rem !important;
+.dark label span {
+    font-family: var(--f-mono) !important;
+    font-size: 0.66rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.09em !important;
+    letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
-    color: var(--ink2) !important;
+    color: var(--muted) !important;
 }
 
-/* ── Checkbox/radio item text — body font, full size ── */
 .checkbox-group label span,
 .radio-group label span,
 .checkbox-group label,
-.radio-group label {
-    font-family: var(--b) !important;
-    font-size: 0.93rem !important;
+.radio-group label,
+.dark .checkbox-group label span {
+    font-family: var(--f-sans) !important;
+    font-size: 0.9rem !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
     text-transform: none !important;
-    color: var(--ink) !important;
-}
-
-/* ── Blocks ── */
-.block,
-.form,
-.panel {
-    background: var(--card) !important;
-    border: 1px solid var(--b0) !important;
-    border-radius: var(--r) !important;
-    box-shadow: 0 1px 4px rgba(15,23,42,0.06), 0 6px 16px rgba(15,23,42,0.04) !important;
+    color: var(--ink2) !important;
 }
 
 /* ── Tab navigation ── */
-.tab-nav {
-    background: var(--card) !important;
-    border: 1px solid var(--b0) !important;
+.tab-nav,
+.dark .tab-nav {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
     border-radius: var(--r) !important;
-    padding: 4px !important;
-    gap: 3px !important;
-    box-shadow: 0 1px 4px rgba(15,23,42,0.08) !important;
+    padding: 5px !important;
+    gap: 2px !important;
+    box-shadow: var(--shadow-sm) !important;
     flex-wrap: wrap !important;
 }
 
 .tab-nav > button,
-.tab-nav button {
-    font-family: var(--bc) !important;
-    font-size: 0.78rem !important;
+.tab-nav button,
+.dark .tab-nav button {
+    font-family: var(--f-cond) !important;
+    font-size: 0.8rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
     color: var(--ink3) !important;
     background: transparent !important;
-    border: 1.5px solid transparent !important;
-    border-radius: 6px !important;
-    padding: 0.48rem 0.95rem !important;
-    transition: all 0.14s ease !important;
+    border: none !important;
+    border-radius: var(--r-sm) !important;
+    padding: 0.45rem 1rem !important;
+    transition: color 0.1s, background 0.1s !important;
     white-space: nowrap !important;
+    cursor: pointer !important;
 }
 
 .tab-nav > button:hover,
 .tab-nav button:hover {
     color: var(--blue) !important;
     background: var(--blue-lo) !important;
-    border-color: var(--blue-mid) !important;
 }
 
 .tab-nav > button.selected,
 .tab-nav button.selected,
 .tab-nav > button[aria-selected="true"],
-.tab-nav button[aria-selected="true"] {
+.tab-nav button[aria-selected="true"],
+.dark .tab-nav button.selected {
     color: #fff !important;
     background: var(--blue) !important;
-    border-color: var(--blue) !important;
-    box-shadow: 0 2px 10px rgba(29,78,216,0.3) !important;
+    box-shadow: 0 2px 8px var(--blue-glow) !important;
     font-weight: 700 !important;
 }
 
@@ -168,15 +247,16 @@ input[type="search"],
 input[type="email"],
 textarea,
 .input-wrap input,
-.svelte-input input {
-    background: var(--card2) !important;
-    border: 1.5px solid var(--b1) !important;
+.dark input[type="text"],
+.dark textarea {
+    background: var(--surface2) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: var(--r) !important;
     color: var(--ink) !important;
-    font-family: var(--b) !important;
-    font-size: 0.95rem !important;
-    padding: 0.55rem 0.75rem !important;
-    transition: border-color 0.14s, box-shadow 0.14s !important;
+    font-family: var(--f-sans) !important;
+    font-size: 0.93rem !important;
+    padding: 0.5rem 0.7rem !important;
+    transition: border-color 0.12s, box-shadow 0.12s !important;
     caret-color: var(--blue) !important;
 }
 
@@ -189,220 +269,175 @@ textarea:focus {
     background: #fff !important;
 }
 
-::placeholder {
-    color: var(--b2) !important;
-    opacity: 1 !important;
-}
+::placeholder { color: var(--border-md) !important; opacity: 1 !important; }
 
 /* ── Range slider ── */
-input[type="range"] {
-    accent-color: var(--blue) !important;
-}
+input[type="range"] { accent-color: var(--blue) !important; }
 
-/* Slider numeric value ── */
-.slider .wrap,
-.slider output,
-input[type="range"] + * {
+.slider .wrap, .slider output, input[type="range"] + * {
     color: var(--ink2) !important;
-    font-family: var(--m) !important;
-    font-size: 0.8rem !important;
+    font-family: var(--f-mono) !important;
+    font-size: 0.78rem !important;
     font-weight: 600 !important;
 }
 
 /* ── Buttons ── */
 button.primary,
-.primary-btn {
+.primary-btn,
+.dark button.primary {
     background: var(--blue) !important;
     color: #fff !important;
-    font-family: var(--bc) !important;
+    font-family: var(--f-cond) !important;
     font-size: 0.8rem !important;
     font-weight: 700 !important;
-    letter-spacing: 0.07em !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     border: none !important;
     border-radius: var(--r) !important;
-    box-shadow: 0 2px 10px rgba(29,78,216,0.22) !important;
-    transition: all 0.14s !important;
+    box-shadow: 0 2px 8px var(--blue-glow) !important;
+    transition: background 0.1s, box-shadow 0.1s, transform 0.08s !important;
+    cursor: pointer !important;
 }
 
-button.primary:hover {
-    background: var(--blue-dk) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 18px rgba(29,78,216,0.34) !important;
-}
-
-button.primary:active { transform: translateY(0) !important; }
+button.primary:hover { background: var(--blue-dk) !important; box-shadow: 0 4px 16px var(--blue-glow) !important; }
+button.primary:active { transform: scale(0.98) !important; }
 
 button.secondary,
-.secondary-btn {
-    background: var(--card) !important;
+.secondary-btn,
+.dark button.secondary {
+    background: var(--surface) !important;
     color: var(--blue) !important;
     border: 1.5px solid var(--blue-mid) !important;
-    font-family: var(--bc) !important;
+    font-family: var(--f-cond) !important;
     font-size: 0.8rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.07em !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     border-radius: var(--r) !important;
-    transition: all 0.14s !important;
+    transition: background 0.1s, border-color 0.1s !important;
+    cursor: pointer !important;
 }
 
-button.secondary:hover {
-    background: var(--blue-lo) !important;
-    border-color: var(--blue) !important;
-}
+button.secondary:hover { background: var(--blue-lo) !important; border-color: var(--blue) !important; }
 
-button.stop {
-    background: var(--card) !important;
+button.stop,
+.dark button.stop {
+    background: var(--surface) !important;
     color: var(--red) !important;
     border: 1.5px solid var(--red-mid) !important;
-    font-family: var(--bc) !important;
+    font-family: var(--f-cond) !important;
     font-size: 0.8rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.07em !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     border-radius: var(--r) !important;
-    transition: all 0.14s !important;
+    transition: background 0.1s !important;
+    cursor: pointer !important;
 }
 
-button.stop:hover {
-    background: var(--red-lo) !important;
-}
-
-/* Download button inherits secondary style */
-.download-btn {
-    color: var(--blue) !important;
-    border-color: var(--blue-mid) !important;
-}
+button.stop:hover { background: var(--red-lo) !important; }
 
 /* ── Checkboxes ── */
 input[type="checkbox"] {
     accent-color: var(--blue) !important;
-    width: 16px !important;
-    height: 16px !important;
+    width: 15px !important;
+    height: 15px !important;
+    cursor: pointer !important;
 }
 
 /* ── Dropdown / Multiselect ── */
-.wrap-inner,
-.svelte-select .wrap-inner {
-    background: var(--card2) !important;
-    border: 1.5px solid var(--b1) !important;
+.wrap-inner, .svelte-select .wrap-inner, .dark .wrap-inner {
+    background: var(--surface2) !important;
+    border: 1.5px solid var(--border) !important;
     color: var(--ink) !important;
 }
 
-.token {
+.token, .dark .token {
     background: var(--blue-lo) !important;
-    color: var(--blue-dk) !important;
+    color: var(--blue-xdk) !important;
     border: 1px solid var(--blue-mid) !important;
-    font-family: var(--m) !important;
-    font-size: 0.72rem !important;
+    font-family: var(--f-mono) !important;
+    font-size: 0.7rem !important;
     font-weight: 600 !important;
 }
 
-.item,
-.list-item {
+.item, .list-item, .dark .item {
     color: var(--ink) !important;
-    font-family: var(--b) !important;
+    font-family: var(--f-sans) !important;
 }
 
-.item:hover,
-.list-item:hover {
+.item:hover, .list-item:hover {
     background: var(--blue-lo) !important;
     color: var(--blue) !important;
 }
 
 /* ── Dataframe / Table ── */
-.table-wrap,
-.svelte-table {
-    border: 1px solid var(--b0) !important;
+.table-wrap, .svelte-table, .dark .table-wrap {
+    border: 1px solid var(--border) !important;
     border-radius: var(--r) !important;
     overflow: hidden !important;
 }
 
-.table-wrap table {
-    background: var(--card) !important;
-    border-collapse: collapse !important;
-    width: 100% !important;
-}
+.table-wrap table { background: var(--surface) !important; border-collapse: collapse !important; width: 100% !important; }
 
-.table-wrap thead tr {
-    border-bottom: 2px solid var(--blue) !important;
-    background: var(--blue-lo) !important;
-}
+.table-wrap thead tr { border-bottom: 2px solid var(--blue) !important; background: var(--blue-lo) !important; }
 
 .table-wrap thead th {
-    font-family: var(--m) !important;
-    font-size: 0.62rem !important;
+    font-family: var(--f-mono) !important;
+    font-size: 0.6rem !important;
     font-weight: 700 !important;
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
-    color: var(--blue-dk) !important;
+    color: var(--blue-xdk) !important;
     padding: 0.6rem 0.9rem !important;
 }
 
-.table-wrap tbody tr {
-    border-bottom: 1px solid var(--b0) !important;
-    transition: background 0.1s !important;
-}
-
-.table-wrap tbody tr:hover {
-    background: var(--blue-lo) !important;
-}
-
+.table-wrap tbody tr { border-bottom: 1px solid var(--border) !important; transition: background 0.08s !important; }
+.table-wrap tbody tr:hover { background: var(--blue-lo) !important; }
 .table-wrap tbody td {
     color: var(--ink) !important;
-    font-family: var(--b) !important;
-    font-size: 0.88rem !important;
-    padding: 0.52rem 0.9rem !important;
+    font-family: var(--f-sans) !important;
+    font-size: 0.87rem !important;
+    padding: 0.5rem 0.9rem !important;
 }
 
 /* ── Markdown ── */
-.prose, .md {
+.prose, .md, .dark .prose, .dark .md {
     color: var(--ink3) !important;
-    font-family: var(--b) !important;
+    font-family: var(--f-sans) !important;
 }
 
-.prose p, .md p,
-.prose li, .md li {
+.prose p, .md p, .prose li, .md li {
     color: var(--ink3) !important;
-    font-size: 0.95rem !important;
-    line-height: 1.6 !important;
+    font-size: 0.93rem !important;
+    line-height: 1.65 !important;
 }
 
-.prose strong, .md strong {
-    color: var(--blue-dk) !important;
-    font-weight: 700 !important;
-}
-
-.prose hr, .md hr {
-    border: none !important;
-    border-top: 1.5px solid var(--b0) !important;
-    margin: 1.5rem 0 !important;
-}
+.prose strong, .md strong { color: var(--blue-dk) !important; font-weight: 700 !important; }
+.prose hr, .md hr { border: none !important; border-top: 1.5px solid var(--border) !important; margin: 1.25rem 0 !important; }
 
 .prose h1, .md h1 {
-    font-family: var(--bc) !important;
-    font-size: 1.9rem !important;
+    font-family: var(--f-cond) !important;
+    font-size: 1.7rem !important;
     font-weight: 700 !important;
-    letter-spacing: -0.01em !important;
     color: var(--ink) !important;
     line-height: 1.15 !important;
-    margin-bottom: 0.4rem !important;
+    margin-bottom: 0.3rem !important;
 }
 
 .prose h2, .md h2 {
-    font-family: var(--bc) !important;
-    font-size: 1.1rem !important;
+    font-family: var(--f-cond) !important;
+    font-size: 1.05rem !important;
     font-weight: 700 !important;
     color: var(--ink) !important;
     border-bottom: 2px solid var(--blue) !important;
-    padding-bottom: 0.25rem !important;
-    margin-top: 1.25rem !important;
+    padding-bottom: 0.2rem !important;
+    margin-top: 1.2rem !important;
 }
 
 .prose h3, .md h3 {
-    font-family: var(--m) !important;
-    font-size: 0.7rem !important;
+    font-family: var(--f-mono) !important;
+    font-size: 0.68rem !important;
     font-weight: 700 !important;
     color: var(--blue-dk) !important;
     text-transform: uppercase !important;
@@ -410,48 +445,93 @@ input[type="checkbox"] {
 }
 
 .prose code, .md code {
-    font-family: var(--m) !important;
+    font-family: var(--f-mono) !important;
     background: var(--blue-lo) !important;
-    color: var(--blue-dk) !important;
-    padding: 0.1em 0.4em !important;
+    color: var(--blue-xdk) !important;
+    padding: 0.1em 0.35em !important;
     border-radius: 4px !important;
-    font-size: 0.84em !important;
+    font-size: 0.83em !important;
     border: 1px solid var(--blue-mid) !important;
 }
 
 /* ── Status messages ── */
-.status-md p,
-.status-md {
-    font-family: var(--m) !important;
-    font-size: 0.78rem !important;
+.status-md p, .status-md {
+    font-family: var(--f-mono) !important;
+    font-size: 0.76rem !important;
     color: var(--ink3) !important;
     line-height: 1.5 !important;
+    min-height: 1.2em !important;
 }
 
-/* ── Slider row area label ── */
-.area-slider-row .prose p,
-.area-slider-row .md p,
-.area-slider-row .prose strong,
-.area-slider-row .md strong {
-    font-family: var(--b) !important;
-    font-size: 0.88rem !important;
+/* ── Slider area row ── */
+.area-slider-row .prose p, .area-slider-row .md p,
+.area-slider-row .prose strong, .area-slider-row .md strong {
+    font-family: var(--f-sans) !important;
+    font-size: 0.87rem !important;
     font-weight: 600 !important;
     color: var(--ink2) !important;
 }
 
 /* ── Danger zone ── */
-.danger-zone {
+.danger-zone, .dark .danger-zone {
     border: 2px solid var(--red-mid) !important;
     background: var(--red-lo) !important;
     border-radius: var(--r) !important;
-    padding: 1rem !important;
+    padding: 1.25rem !important;
 }
 
-/* ── Custom scrollbar ── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--b1); border-radius: 3px; }
+/* ── Section dividers ── */
+.section-label {
+    font-family: var(--f-mono) !important;
+    font-size: 0.66rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    color: var(--muted) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin: 1rem 0 0.5rem !important;
+}
+
+.section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ── Rating instruction pill ── */
+.rating-hint {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    background: var(--blue-lo) !important;
+    border: 1px solid var(--blue-mid) !important;
+    border-radius: 100px !important;
+    padding: 0.25rem 0.75rem !important;
+    font-family: var(--f-mono) !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    color: var(--blue-dk) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--blue); }
+
+/* ── Gradio dark overrides (nuclear option) ── */
+.dark {
+    --background-fill-primary: var(--surface) !important;
+    --background-fill-secondary: var(--surface2) !important;
+    --background-fill-tertiary: var(--bg) !important;
+    --border-color-primary: var(--border) !important;
+    --color-accent: var(--blue) !important;
+    --body-text-color: var(--ink) !important;
+    --body-text-color-subdued: var(--muted) !important;
+}
 """
 
 
@@ -470,22 +550,26 @@ def build_radar(df: pd.DataFrame, names: list[str] | None = None) -> go.Figure:
     layout_base = dict(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="JetBrains Mono, monospace", color="#1E293B"),
-        height=660,
-        margin=dict(l=95, r=95, t=70, b=70),
+        font=dict(family="Inter, sans-serif", color="#1E293B"),
+        height=680,
+        margin=dict(l=100, r=100, t=80, b=80),
         showlegend=True,
         legend=dict(
-            bgcolor="rgba(255,255,255,0.92)",
-            bordercolor="#CBD5E1",
+            bgcolor="rgba(255,255,255,0.95)",
+            bordercolor="#D1D9EE",
             borderwidth=1,
-            font=dict(size=12, color="#1E293B"),
+            font=dict(size=11, color="#1E293B"),
+            orientation="h",
+            x=0.5,
+            xanchor="center",
+            y=-0.08,
         ),
     )
 
     def _empty_fig(msg):
         fig = go.Figure()
         fig.update_layout(
-            title=dict(text=msg, font=dict(color="#475569", size=13)),
+            title=dict(text=msg, font=dict(color="#64748B", size=14, family="Inter, sans-serif")),
             **layout_base,
         )
         return fig
@@ -509,7 +593,6 @@ def build_radar(df: pd.DataFrame, names: list[str] | None = None) -> go.Figure:
         interest_avgs.append(sum(i_vals) / len(i_vals) if i_vals else 0)
         expertise_avgs.append(sum(e_vals) / len(e_vals) if e_vals else 0)
 
-    # Only show areas with actual data
     active = [(i, a) for i, a in enumerate(areas)
               if interest_avgs[i] > 0 or expertise_avgs[i] > 0]
 
@@ -523,12 +606,11 @@ def build_radar(df: pd.DataFrame, names: list[str] | None = None) -> go.Figure:
         i_used     = interest_avgs
         e_used     = expertise_avgs
 
-    # Auto-scale with 15 % headroom, capped at 5
     max_val = max(max(i_used, default=0.1), max(e_used, default=0.1))
     r_max   = min(5.0, max(max_val * 1.15, 1.0))
 
     n = len(areas_used)
-    short = [a[:20] + "…" if len(a) > 20 else a for a in areas_used]
+    short = [a[:22] + "…" if len(a) > 22 else a for a in areas_used]
     theta = short + [short[0]]
     tick_vals = [round(r_max * t / 5, 2) for t in range(1, 6)]
 
@@ -536,33 +618,33 @@ def build_radar(df: pd.DataFrame, names: list[str] | None = None) -> go.Figure:
     fig.add_trace(go.Scatterpolar(
         r=i_used + [i_used[0]], theta=theta,
         fill="toself", name="Interest (avg)",
-        line=dict(color="#1D4ED8", width=2.5),
-        fillcolor="rgba(29,78,216,0.10)",
-        marker=dict(size=5, color="#1D4ED8"),
+        line=dict(color="#2563EB", width=2.5),
+        fillcolor="rgba(37,99,235,0.10)",
+        marker=dict(size=5, color="#2563EB"),
     ))
     fig.add_trace(go.Scatterpolar(
         r=e_used + [e_used[0]], theta=theta,
         fill="toself", name="Expertise (avg)",
-        line=dict(color="#0F766E", width=2.5),
-        fillcolor="rgba(15,118,110,0.08)",
-        marker=dict(size=5, color="#0F766E"),
+        line=dict(color="#0D9488", width=2.5),
+        fillcolor="rgba(13,148,136,0.09)",
+        marker=dict(size=5, color="#0D9488"),
     ))
 
     fig.update_layout(
         polar=dict(
-            bgcolor="rgba(248,250,253,0.7)",
+            bgcolor="rgba(247,249,254,0.85)",
             radialaxis=dict(
                 visible=True,
                 range=[0, r_max],
                 tickvals=tick_vals,
-                tickfont=dict(size=9, color="#64748B"),
-                gridcolor="rgba(29,78,216,0.12)",
-                linecolor="rgba(29,78,216,0.12)",
-                tickcolor="rgba(29,78,216,0.2)",
+                tickfont=dict(size=9, color="#94A3B8"),
+                gridcolor="rgba(37,99,235,0.10)",
+                linecolor="rgba(37,99,235,0.10)",
+                tickcolor="rgba(37,99,235,0.18)",
             ),
             angularaxis=dict(
-                gridcolor="rgba(29,78,216,0.09)",
-                linecolor="rgba(29,78,216,0.14)",
+                gridcolor="rgba(37,99,235,0.08)",
+                linecolor="rgba(37,99,235,0.12)",
                 tickfont=dict(size=9 if n > 15 else 10, color="#334155"),
                 direction="clockwise",
             ),
@@ -570,6 +652,8 @@ def build_radar(df: pd.DataFrame, names: list[str] | None = None) -> go.Figure:
         title=dict(
             text=f"Team Deep Tech Radar  ·  {n} active area{'s' if n != 1 else ''}",
             font=dict(size=13, color="#1E293B", family="Barlow Condensed, sans-serif"),
+            x=0.5,
+            xanchor="center",
         ),
         **layout_base,
     )
@@ -611,11 +695,26 @@ def find_collaborators(df: pd.DataFrame, areas: list[str], min_score: int = 3) -
 
 
 # ── Client-side JS ─────────────────────────────────────────────────────────────
-# Runs on page load. Intercepts checkbox changes in the area selection group and
-# immediately shows/hides the corresponding slider rows without a server round-trip,
-# so visibility feedback is instant rather than waiting for the Python response.
+# Handles two things:
+#   1. Instantly shows/hides slider rows when checkboxes change (no server round-trip wait)
+#   2. Forces light colour-scheme so OS dark-mode never activates
 _JS_SETUP = """
 () => {
+  // Force light mode
+  document.documentElement.classList.remove('dark');
+  document.documentElement.removeAttribute('data-theme');
+  document.documentElement.style.colorScheme = 'light';
+  document.body.style.colorScheme = 'light';
+
+  // Re-apply light mode after any framework re-render
+  const obs = new MutationObserver(() => {
+    if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark');
+    }
+  });
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+
+  // Instant slider-row toggle on checkbox change
   document.addEventListener('change', function(e) {
     if (!e.target || e.target.type !== 'checkbox') return;
     var grp = document.getElementById('area-select-group');
@@ -623,7 +722,10 @@ _JS_SETUP = """
     var boxes = Array.from(grp.querySelectorAll('input[type="checkbox"]'));
     boxes.forEach(function(cb, i) {
       var row = document.getElementById('area-row-' + i);
-      if (row) row.style.display = cb.checked ? 'flex' : 'none';
+      if (row) {
+        row.style.display = cb.checked ? '' : 'none';
+        row.style.visibility = cb.checked ? 'visible' : '';
+      }
     });
   });
 }
@@ -632,13 +734,57 @@ _JS_SETUP = """
 
 # ── UI ─────────────────────────────────────────────────────────────────────────
 
+_THEME = gr.themes.Base(
+    primary_hue=gr.themes.colors.blue,
+    secondary_hue=gr.themes.colors.slate,
+    neutral_hue=gr.themes.colors.slate,
+    font=gr.themes.GoogleFont("Inter"),
+    font_mono=gr.themes.GoogleFont("JetBrains Mono"),
+).set(
+    body_background_fill="transparent",
+    body_background_fill_dark="transparent",
+    background_fill_primary="#FFFFFF",
+    background_fill_primary_dark="#FFFFFF",
+    background_fill_secondary="#F7F9FE",
+    background_fill_secondary_dark="#F7F9FE",
+    border_color_primary="#D1D9EE",
+    border_color_primary_dark="#D1D9EE",
+    color_accent="#2563EB",
+    color_accent_soft="rgba(37,99,235,0.06)",
+    body_text_color="#0F172A",
+    body_text_color_dark="#0F172A",
+    body_text_color_subdued="#64748B",
+    body_text_color_subdued_dark="#64748B",
+    block_background_fill="#FFFFFF",
+    block_background_fill_dark="#FFFFFF",
+    block_border_color="#D1D9EE",
+    block_border_color_dark="#D1D9EE",
+    block_shadow="0 1px 3px rgba(15,23,42,0.07), 0 1px 2px rgba(15,23,42,0.04)",
+    input_background_fill="#F7F9FE",
+    input_background_fill_dark="#F7F9FE",
+    input_border_color="#D1D9EE",
+    input_border_color_dark="#D1D9EE",
+    input_shadow="none",
+    button_primary_background_fill="#2563EB",
+    button_primary_background_fill_dark="#2563EB",
+    button_primary_text_color="#FFFFFF",
+    button_primary_text_color_dark="#FFFFFF",
+)
+
+
 def build_ui() -> gr.Blocks:
     areas   = config.EXTENDED_TECH_AREAS
     n_areas = len(areas)
 
     with gr.Blocks(title=config.APP_TITLE) as demo:
 
-        gr.Markdown(f"# ◈ {config.APP_TITLE}\n\n{config.APP_SUBTITLE}")
+        # Hero header
+        gr.HTML(f"""
+        <div class="app-hero">
+          <h1>◈ {config.APP_TITLE}</h1>
+          <p>{config.APP_SUBTITLE}</p>
+        </div>
+        """)
 
         # ── Tab 1: Submit / Update ─────────────────────────────────────────────
         with gr.Tab("📡  Submit / Update Profile"):
@@ -648,8 +794,9 @@ def build_ui() -> gr.Blocks:
                     choices=config.TEAM_MEMBERS + ["External Collaborator"],
                     label="Your name",
                     value=config.TEAM_MEMBERS[0],
+                    scale=2,
                 )
-                org_box = gr.Textbox(label="Organisation (external only)", visible=False)
+                org_box = gr.Textbox(label="Organisation (external only)", visible=False, scale=1)
 
             profile_status = gr.Markdown("", elem_classes=["status-md"])
 
@@ -659,9 +806,9 @@ def build_ui() -> gr.Blocks:
                 elem_id="area-select-group",
             )
 
-            gr.Markdown("### Rate each selected area &nbsp; `0 = not applicable` &nbsp; `5 = leading expert`")
+            gr.HTML('<div class="section-label">Rate each selected area</div>')
+            gr.HTML('<span class="rating-hint">0 = not applicable &nbsp;·&nbsp; 5 = leading expert</span>')
 
-            # Each area gets one Row (hidden by default), with its two sliders
             slider_rows       = []
             interest_sliders  = []
             expertise_sliders = []
@@ -679,20 +826,22 @@ def build_ui() -> gr.Blocks:
                 interest_sliders.append(i_s)
                 expertise_sliders.append(e_s)
 
-            # Show/hide slider rows when checkboxes change
             def show_sliders(selected_areas):
                 return [
                     gr.update(visible=(a in (selected_areas or [])))
                     for a in areas
                 ]
 
+            # queue=False makes visibility updates bypass the queue for instant response
             area_select.change(
                 show_sliders,
                 inputs=area_select,
                 outputs=slider_rows,
                 show_progress="hidden",
+                queue=False,
             )
 
+            gr.HTML('<div class="section-label">Collaboration</div>')
             collab_goals = gr.CheckboxGroup(choices=config.COLLAB_GOALS, label="Collaboration goals")
             description  = gr.Textbox(
                 lines=3,
@@ -703,32 +852,28 @@ def build_ui() -> gr.Blocks:
             submit_btn    = gr.Button("⬆  Save Profile", variant="primary")
             submit_status = gr.Markdown("", elem_classes=["status-md"])
 
-            # Outputs for name-change pre-fill — order must exactly match the yield below
             _name_outputs = [
-                org_box,             # 0
-                profile_status,      # 1
-                area_select,         # 2
-                *slider_rows,        # 3 … 3+n_areas-1       (30)
-                *interest_sliders,   # 3+n_areas … 3+2*n-1   (30)
-                *expertise_sliders,  # 3+2n … 3+3n-1         (30)
-                collab_goals,        # 3+3n
-                description,         # 3+3n+1
+                org_box,
+                profile_status,
+                area_select,
+                *slider_rows,
+                *interest_sliders,
+                *expertise_sliders,
+                collab_goals,
+                description,
             ]
-            # Total: 2 + 1 + 3*n_areas + 2 = 95
 
             def _blank_form():
                 return (
-                    gr.update(value=[]),                              # area_select
-                    *[gr.update(visible=False) for _ in areas],       # slider rows
-                    *[gr.update(value=0) for _ in areas],             # interest sliders
-                    *[gr.update(value=0) for _ in areas],             # expertise sliders
-                    gr.update(value=[]),                              # collab_goals
-                    gr.update(value=""),                              # description
+                    gr.update(value=[]),
+                    *[gr.update(visible=False) for _ in areas],
+                    *[gr.update(value=0) for _ in areas],
+                    *[gr.update(value=0) for _ in areas],
+                    gr.update(value=[]),
+                    gr.update(value=""),
                 )
-            # _blank_form returns 1 + 3*n_areas + 2 = 93 items
 
             def on_name_change(name):
-                # First yield: show loading, keep form as-is
                 yield (
                     gr.update(visible=(name == "External Collaborator")),
                     "⏳ &nbsp; Loading profile…",
@@ -817,8 +962,9 @@ def build_ui() -> gr.Blocks:
                     choices=["All team"] + config.TEAM_MEMBERS,
                     value="All team", multiselect=True,
                     label="Filter by member(s)",
+                    scale=3,
                 )
-                radar_refresh = gr.Button("🔄  Refresh", variant="secondary")
+                radar_refresh = gr.Button("🔄  Refresh", variant="secondary", scale=1)
 
             radar_status = gr.Markdown("", elem_classes=["status-md"])
             radar_plot   = gr.Plot(label="")
@@ -848,8 +994,9 @@ def build_ui() -> gr.Blocks:
             collab_areas = gr.CheckboxGroup(choices=areas, label="I want to collaborate on…")
             with gr.Row():
                 min_score_slider = gr.Slider(1, 5, step=1, value=3,
-                                             label="Min. interest / expertise score")
-                find_btn = gr.Button("🔍  Search", variant="primary")
+                                             label="Min. interest / expertise score",
+                                             scale=3)
+                find_btn = gr.Button("🔍  Search", variant="primary", scale=1)
 
             collab_status  = gr.Markdown("", elem_classes=["status-md"])
             collab_results = gr.Dataframe(label="Matching Collaborators")
@@ -905,8 +1052,8 @@ def build_ui() -> gr.Blocks:
                               show_progress="hidden")
             demo.load(_initial_table, outputs=[all_status, all_table, all_download])
 
-            # ── Danger Zone ────────────────────────────────────────────────────
-            gr.Markdown("---\n## ⚠️ Danger Zone\nPassword-protected, **irreversible** actions.")
+            gr.HTML('<div class="section-label" style="margin-top:1.5rem">Danger Zone</div>')
+            gr.Markdown("Password-protected, **irreversible** actions.")
 
             with gr.Group(elem_classes=["danger-zone"]):
                 gr.Markdown("### 🔐 Admin Actions")
@@ -926,7 +1073,7 @@ def build_ui() -> gr.Blocks:
                 if password != ADMIN_PASSWORD:
                     yield "❌ &nbsp; **Wrong password.** Access denied."
                     return
-                yield "⏳ &nbsp; Wiping dataset on HuggingFace…"
+                yield "⏳ &nbsp; Wiping dataset…"
                 try:
                     storage.clear_all_profiles()
                     yield "✅ &nbsp; **Dataset cleared.** All profiles deleted."
@@ -954,12 +1101,15 @@ def build_ui() -> gr.Blocks:
 
 if __name__ == "__main__":
     app = build_ui()
+    app.queue(default_concurrency_limit=5)
     app.launch(
         share=False,
         server_name="0.0.0.0",
         server_port=7861,
         css=CUSTOM_CSS,
         head=_FONTS_HEAD,
-        theme=gr.themes.Soft(),
         js=_JS_SETUP,
+        theme=_THEME,
+        show_error=True,
+        quiet=False,
     )

@@ -9,3 +9,18 @@ __pycache__/
 *.jpg
 .playwright-cli/
 .python-version
+
+# Runtime data
+data/
+*.db
+*.pem
+*.key
+*.crt
+
+# Abandoned approaches
+nginx/
+data.md
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
