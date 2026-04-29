@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 
 const SUGGESTIONS = [
   'Which team members are open to collaborating on research papers?',
@@ -118,9 +119,24 @@ export default function AskAI() {
                 borderRadius: '4px var(--r) var(--r) var(--r)',
                 padding: '0.7rem 1rem', maxWidth: '85%',
                 fontSize: '0.86rem', lineHeight: 1.65, color: 'var(--ink)',
-                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                wordBreak: 'break-word',
               }}>
-                {item.a || <span style={{ color: 'var(--muted)' }}>▍</span>}
+                {item.a
+                  ? <ReactMarkdown components={{
+                      p:      ({node, ...p}) => <p style={{ margin: '0 0 0.5em' }} {...p} />,
+                      ul:     ({node, ...p}) => <ul style={{ margin: '0.3em 0 0.5em', paddingLeft: '1.4em' }} {...p} />,
+                      ol:     ({node, ...p}) => <ol style={{ margin: '0.3em 0 0.5em', paddingLeft: '1.4em' }} {...p} />,
+                      li:     ({node, ...p}) => <li style={{ margin: '0.15em 0' }} {...p} />,
+                      strong: ({node, ...p}) => <strong style={{ fontWeight: 600 }} {...p} />,
+                      h1:     ({node, ...p}) => <h1 style={{ fontSize: '1em', fontWeight: 700, margin: '0.5em 0 0.25em' }} {...p} />,
+                      h2:     ({node, ...p}) => <h2 style={{ fontSize: '1em', fontWeight: 700, margin: '0.5em 0 0.25em' }} {...p} />,
+                      h3:     ({node, ...p}) => <h3 style={{ fontSize: '0.95em', fontWeight: 600, margin: '0.4em 0 0.2em' }} {...p} />,
+                      code:   ({node, inline, ...p}) => inline
+                        ? <code style={{ background: 'var(--surface2)', borderRadius: 3, padding: '0.1em 0.3em', fontSize: '0.9em' }} {...p} />
+                        : <pre style={{ background: 'var(--surface2)', borderRadius: 6, padding: '0.6em 0.8em', overflowX: 'auto', fontSize: '0.85em' }}><code {...p} /></pre>,
+                    }}>{item.a}</ReactMarkdown>
+                  : <span style={{ color: 'var(--muted)' }}>▍</span>
+                }
               </div>
             </div>
           </div>
